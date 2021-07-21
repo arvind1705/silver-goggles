@@ -53,7 +53,7 @@ def search_youtube_videos(request, *args, **kwargs):
         response = paginator.get_paginated_response(result_page)
     else:
         # return message to user when query params is not passed.
-        data = {"message": "Please pass query params."}
+        data = {"message": "Please pass query params at the end of like this /search/?q=keyword."}
         response = Response(data, status=HTTP_200_OK)
 
     return response
