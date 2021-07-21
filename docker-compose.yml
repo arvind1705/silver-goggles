@@ -1,0 +1,45 @@
+version: '3'
+x-common-variables: &ref_0
+  DEBUG: 'true'
+  SECRET_KEY: secret
+  GOOGLE_DEVELOPER_KEY: '${API_KEY}'
+  DB_USER: fampay_user
+  DB_NAME: fampay_db
+  DB_PASSWORD: mysecret@password
+  DB_HOST: postgres
+services:
+  web:
+    build: .
+    command:
+      - /bin/bash
+      - '-c'
+      - |
+        python manage.py migrate
+        gunicorn -b 0.0.0.0:8000 fampay.wsgi:application
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - '.:/usr/src/app'
+    ports:
+      - '8000:8000'
+    environment: *ref_0
+  postgres:
+    image: 'postgres:9.6.2-alpine'
+    environment:
+      POSTGRES_USER: fampay_user
+      POSTGRES_DB: fampay_db
+      POSTGRES_PASSWORD: mysecret@password
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U postgres
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  cron:
+    build: .
+    command: python periodic_task.py
+    depends_on:
+      - postgres
+    environment: *ref_0
