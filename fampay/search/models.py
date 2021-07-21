@@ -4,7 +4,7 @@ from django.db import models
 
 class YoutubeVideo(models.Model):
     video_id = models.CharField(max_length=50, primary_key=True)
-    video_title = models.CharField(max_length=100, db_index=True)
+    video_title = models.CharField(max_length=1000, db_index=True)
     video_description = models.TextField(db_index=True)
     publishing_datetime = models.DateTimeField()
     inserted_at = models.DateTimeField(auto_now_add=True)

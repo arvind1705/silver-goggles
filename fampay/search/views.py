@@ -7,7 +7,8 @@ from rest_framework.status import HTTP_200_OK
 
 from rest_framework.pagination import PageNumberPagination
 
-from .models import YoutubeVideo
+from fampay.mock_data import mock_data
+from .models import YoutubeVideo, ThumbnailURL
 
 
 # Create your views here.
@@ -53,7 +54,34 @@ def search_youtube_videos(request, *args, **kwargs):
         response = paginator.get_paginated_response(result_page)
     else:
         # return message to user when query params is not passed.
-        data = {"message": "Please pass query params at the end of like this /search/?q=keyword."}
+        data = {
+            "message": "Please pass query params at the end of like this /search/?q=keyword."}
         response = Response(data, status=HTTP_200_OK)
 
     return response
+
+
+@api_view(["GET"])
+def insert_mock_data(request, *args, **kwargs):
+    """GET API to insert mock data.
+
+    @param request: http request object
+
+    @return: json response message.
+    """
+    response = mock_data
+    for video in response.get('items'):
+        video_snippet = video['snippet']
+        video_thumbnails = video_snippet['thumbnails']
+        youtube_video, created = YoutubeVideo.objects.get_or_create(video_id=video['id']['videoId'], video_title=video_snippet['title'],
+                                                                    video_description=video_snippet['description'], publishing_datetime=video_snippet['publishedAt'])
+        youtube_video.save()
+
+        # thumbnail is updated only if video information is inserted.
+        if created:
+            for res_type, thumnail_data in video_thumbnails.items():
+                _ = ThumbnailURL(
+                    url=thumnail_data['url'], resolution_type=res_type, yt_video=youtube_video).save()
+
+    data = {"message": "Mock data inserted."}
+    return Response(data, status=HTTP_200_OK)

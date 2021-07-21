@@ -16,10 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from fampay.search.views import get_youtube_videos, search_youtube_videos
+from fampay.search.views import get_youtube_videos, search_youtube_videos, insert_mock_data
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/video/', get_youtube_videos),
-    path('api/video/search/', search_youtube_videos)
+    path('api/video/search/', search_youtube_videos),
+    path('api/mock_data', insert_mock_data)
 ]
