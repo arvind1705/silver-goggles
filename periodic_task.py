@@ -6,27 +6,49 @@ from datetime import datetime, timedelta
 import django
 import googleapiclient.discovery
 
+from django.conf import settings
+
+from decouple import config
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "fampay.settings")
 os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
+settings.configure(
+    DATABASES={
+        'default': {
+            "ENGINE": "django.db.backends.postgresql_psycopg2",
+            "NAME": config('DB_NAME'),
+            "USER": config('DB_USER'),
+            "PASSWORD": config('DB_PASSWORD'),
+            "HOST": config('DB_HOST'),
+            "PORT": '5432',
+        }
+    }, INSTALLED_APPS=[
+        'fampay.search',
+    ]
+)
+
 django.setup()
 
+# from fampay.mock_data import mock_data
 from fampay.search.models import ThumbnailURL, YoutubeVideo
-from fampay.settings import DEVELOPER_KEY
-
+from fampay.settings import GOOGLE_DEVELOPER_KEY
 
 async def periodic_youtube_task():
+    """Asynchronous function which runs in defined interval with predefined params to fetch
+    data from Youtube API and inserts it to DB
+
+    """
     while True:
         print('Periodic Youtube Cron Task')
 
         # Sleep for 1 hour. Update frequency if required. Make sure API quota is available.
-        await asyncio.sleep(3600)
+        await asyncio.sleep(3)
 
         api_service_name = "youtube"
         api_version = "v3"
-        api_access_key = DEVELOPER_KEY
+        api_access_key = GOOGLE_DEVELOPER_KEY
 
         youtube = googleapiclient.discovery.build(
             api_service_name, api_version, developerKey=api_access_key)
@@ -54,7 +76,7 @@ async def periodic_youtube_task():
             youtube_video, created = YoutubeVideo.objects.get_or_create(video_id=video['id']['videoId'], video_title=video_snippet['title'],
                                                                         video_description=video_snippet['description'], publishing_datetime=video_snippet['publishedAt'])
             youtube_video.save()
-            
+
             # thumbnail is updated only if video information is inserted.
             if created:
                 for res_type, thumnail_data in video_thumbnails.items():
