@@ -1,17 +1,23 @@
 
 from django.db.models import Q
-
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from fampay.mock_data import mock_data
 from rest_framework.decorators import api_view
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 
-from rest_framework.pagination import PageNumberPagination
+from .models import ThumbnailURL, YoutubeVideo
 
-from fampay.mock_data import mock_data
-from .models import YoutubeVideo, ThumbnailURL
-
+search_param = openapi.Parameter(
+    'q', openapi.IN_QUERY, description="Search Param", type=openapi.TYPE_STRING)
 
 # Create your views here.
+
+
+@swagger_auto_schema(
+    operation_description="GET Youtube Video information", methods=['get'], responses={200: 'Return the stored video data in a paginated response sorted in descending order of published datetime.'})
 @api_view(["GET"])
 def get_youtube_videos(request):
     """GET API to return the stored video data in a paginated response sorted in descending
@@ -31,6 +37,9 @@ def get_youtube_videos(request):
     return paginator.get_paginated_response(result_page)
 
 
+@swagger_auto_schema(
+    operation_description="API to search the stored video data based on title and desciption.", methods=['get'], manual_parameters=[search_param],
+    responses={200: 'Youtube video information containing search string in title or description along with current and next page data.'})
 @api_view(["GET"])
 def search_youtube_videos(request, *args, **kwargs):
     """GET API to search the stored video data based on title and desciption.
@@ -61,6 +70,8 @@ def search_youtube_videos(request, *args, **kwargs):
     return response
 
 
+@swagger_auto_schema(
+    operation_description="API to insert mock data.", methods=['get'], responses={200: 'Inserts mock data to database'})
 @api_view(["GET"])
 def insert_mock_data(request, *args, **kwargs):
     """GET API to insert mock data.
