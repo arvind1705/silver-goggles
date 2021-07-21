@@ -15,7 +15,7 @@ services:
       - '-c'
       - |
         python manage.py migrate
-        gunicorn -b 0.0.0.0:8000 fampay.wsgi:application
+        gunicorn --bind :8000 --workers 5 fampay.wsgi --worker-class gevent
     depends_on:
       postgres:
         condition: service_healthy
