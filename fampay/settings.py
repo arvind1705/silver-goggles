@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'fampay.search'
+    'fampay.search',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
