@@ -52,8 +52,8 @@ def search_youtube_videos(request, *args, **kwargs):
 
     if search_string:
         # Django ORM to filter videos by given search string and sort them based on publishing datetime.
-        youtube_video_objects = YoutubeVideo.objects.filter(Q(video_title__contains=search_string) | Q(
-            video_description__contains=search_string)).order_by('-publishing_datetime').values()
+        youtube_video_objects = YoutubeVideo.objects.filter(Q(video_title__icontains=search_string) | Q(
+            video_description__icontains=search_string)).order_by('-publishing_datetime').values()
 
         paginator = PageNumberPagination()
         paginator.page_size = 5
