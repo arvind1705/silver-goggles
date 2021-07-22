@@ -1,4 +1,4 @@
-# silver-goggles
+# Backend Assignment | FamPay
     
 ## Steps to run assignment locally:
 
