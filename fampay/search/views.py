@@ -1,3 +1,4 @@
+import logging
 
 import django_filters
 from django.db.models import Q
@@ -14,6 +15,8 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 
 from .models import ThumbnailURL, YoutubeVideo
+
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 search_param = openapi.Parameter(
     'q', openapi.IN_QUERY, description="Search Param", type=openapi.TYPE_STRING)
@@ -98,12 +101,15 @@ def insert_mock_data(request, *args, **kwargs):
             for res_type, thumnail_data in video_thumbnails.items():
                 _ = ThumbnailURL(
                     url=thumnail_data['url'], resolution_type=res_type, yt_video=youtube_video).save()
-
+    logging.info('Mock data inserted.')
     data = {"message": "Mock data inserted."}
     return Response(data, status=HTTP_200_OK)
 
 
 class YoutubeVideoFilter(django_filters.FilterSet):
+    """
+    Django Filterset class to filter data in model.
+    """
     class Meta:
         model = YoutubeVideo
         fields = {"video_title": ["icontains"],
@@ -111,6 +117,9 @@ class YoutubeVideoFilter(django_filters.FilterSet):
 
 
 class FilteredYoutubeVideoView(SingleTableMixin, FilterView):
+    """
+    View to visualize model data in UI.
+    """
     model = YoutubeVideo
     template_name = "video_list.html"
     filterset_class = YoutubeVideoFilter

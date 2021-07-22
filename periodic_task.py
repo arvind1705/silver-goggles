@@ -2,6 +2,7 @@
 import asyncio
 import os
 from datetime import datetime, timedelta
+import logging
 
 import django
 import googleapiclient
@@ -10,6 +11,8 @@ import googleapiclient.discovery
 from django.conf import settings
 
 from decouple import config
+
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "fampay.settings")
 os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
@@ -42,10 +45,7 @@ async def periodic_youtube_task():
 
     """
     while True:
-        print('Periodic Youtube Cron Task')
-
-        # Sleep for 1 minute. Update frequency if required. Make sure API quota is available.
-        await asyncio.sleep(60)
+        logging.info('Periodic Youtube Cron Task')
 
         api_service_name = "youtube"
         api_version = "v3"
@@ -85,8 +85,11 @@ async def periodic_youtube_task():
                         _ = ThumbnailURL(
                             url=thumnail_data['url'], resolution_type=res_type, yt_video=youtube_video).save()
         except googleapiclient.errors.HttpError as e:
-            print('Please provide valid API Key. Hit /api/mock_data to insert mockdata incase you do not have api key')
+            logging.warning('Please provide valid API Key. Hit /api/mock_data to insert mockdata incase you do not have api key')
 
+
+        # Sleep for 10 seconds. Update frequency if required. Make sure API quota is available.
+        await asyncio.sleep(10)
 
 loop = asyncio.get_event_loop()
 task = loop.create_task(periodic_youtube_task())
