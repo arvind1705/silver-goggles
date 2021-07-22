@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fampay
+  labels:
+    app: fampay
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      pod: fampay
+  template:
+    metadata:
+      labels:
+        pod: fampay
+    spec:
+      containers:
+        - name: fampay
+          image: hasher1705/fampay
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: fampay-credentials
+                  key: db_user
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fampay-credentials
+                  key: db_password
+
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: fampay-credentials
+                  key: db_host
+
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: fampay-credentials
+                  key: db_name
+
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fampay-credentials
+                  key: secret_key
+
+            - name: GOOGLE_DEVELOPER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fampay-credentials
+                  key: google_developer_key

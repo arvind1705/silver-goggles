@@ -1,36 +1,38 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: fampay
-  labels:
-    app: fampay
+  name: fampay-migrations
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      pod: fampay
   template:
-    metadata:
-      labels:
-        pod: fampay
     spec:
       containers:
         - name: fampay
           image: hasher1705/fampay
-          ports:
-            - containerPort: 8000
+          command: ['python', 'manage.py', 'migrate']
           env:
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: postgres-credentials
-                  key: user
+                  name: fampay-credentials
+                  key: db_user
 
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: postgres-credentials
-                  key: password
+                  name: fampay-credentials
+                  key: db_password
+
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: fampay-credentials
+                  key: db_host
+
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: fampay-credentials
+                  key: db_name
 
             - name: SECRET_KEY
               valueFrom:
@@ -44,9 +46,5 @@ spec:
                   name: fampay-credentials
                   key: google_developer_key
 
-            - name: DB_HOST
-              value: postgres-service 
-
-            - name: DB_NAME
-              value: fampay_db
-
+      restartPolicy: Never
+  backoffLimit: 5
