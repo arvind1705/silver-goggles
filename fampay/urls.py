@@ -21,7 +21,7 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
 from fampay.search.views import (get_youtube_videos, insert_mock_data,
-                                 search_youtube_videos)
+                                 search_youtube_videos, FilteredYoutubeVideoView)
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -35,6 +35,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', FilteredYoutubeVideoView.as_view()),
     path('api/video/', get_youtube_videos),
     path('api/video/search/', search_youtube_videos),
     path('api/mock_data', insert_mock_data),

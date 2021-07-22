@@ -1,5 +1,10 @@
 
+import django_filters
 from django.db.models import Q
+from django.shortcuts import render
+from django.views.generic import ListView
+from django_filters.views import FilterView
+from django_tables2.views import SingleTableMixin
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from fampay.mock_data import mock_data
@@ -96,3 +101,16 @@ def insert_mock_data(request, *args, **kwargs):
 
     data = {"message": "Mock data inserted."}
     return Response(data, status=HTTP_200_OK)
+
+
+class YoutubeVideoFilter(django_filters.FilterSet):
+    class Meta:
+        model = YoutubeVideo
+        fields = {"video_title": ["icontains"],
+                  "video_description": ["icontains"]}
+
+
+class FilteredYoutubeVideoView(SingleTableMixin, FilterView):
+    model = YoutubeVideo
+    template_name = "video_list.html"
+    filterset_class = YoutubeVideoFilter
