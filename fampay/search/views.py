@@ -1,8 +1,15 @@
 
+import os
+from datetime import datetime, timedelta
+
+import django
+import googleapiclient
+import googleapiclient.discovery
 from django.db.models import Q
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from fampay.mock_data import mock_data
+from fampay.settings import GOOGLE_DEVELOPER_KEY
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -81,6 +88,13 @@ def insert_mock_data(request, *args, **kwargs):
     @return: json response message.
     """
     response = mock_data
+    insert_data_to_models(response)
+
+    data = {"message": "Mock data inserted."}
+    return Response(data, status=HTTP_200_OK)
+
+
+def insert_data_to_models(response):
     for video in response.get('items'):
         video_snippet = video['snippet']
         video_thumbnails = video_snippet['thumbnails']
@@ -94,5 +108,43 @@ def insert_mock_data(request, *args, **kwargs):
                 _ = ThumbnailURL(
                     url=thumnail_data['url'], resolution_type=res_type, yt_video=youtube_video).save()
 
-    data = {"message": "Mock data inserted."}
-    return Response(data, status=HTTP_200_OK)
+
+@swagger_auto_schema(
+    operation_description="API to insert mock data.", methods=['get'], responses={200: 'Inserts mock data to database'})
+@api_view(["GET"])
+def get_data_from_yt(request, *args, **kwargs):
+    """GET API to fetch data from YT and insert to DB.
+
+    @param request: http request object
+
+    @return: json response message.
+    """
+    api_service_name = "youtube"
+    api_version = "v3"
+    api_access_key = GOOGLE_DEVELOPER_KEY
+    try:
+        youtube = googleapiclient.discovery.build(
+            api_service_name, api_version, developerKey=api_access_key)
+
+        # Fetching latest information which wasn't fetched earlier.
+        published_time = datetime.now() - timedelta(hours=1)
+
+        # Youtube api client to search for predefined params
+        request = youtube.search().list(
+            part="id, snippet",
+            publishedAfter=published_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            maxResults=200,
+            order="date",
+            q="Playstation 5",
+            regionCode="IN",
+            relevanceLanguage="en",
+            type="video"
+        )
+        response = request.execute()
+        insert_data_to_models(response)
+        response_message = 'Fetched data from YT and inserted successfully'
+
+    except googleapiclient.errors.HttpError as e:
+        print('Please provide valid API Key. Hit /api/mock_data to insert mockdata incase you do not have api key')
+        response_message = 'Please provide valid API Key. Hit /api/mock_data to insert mockdata incase you do not have api key'
+    return Response({'message': response_message}, status=HTTP_200_OK)
