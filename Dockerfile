@@ -57,12 +57,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the remaining code
 # Avoid copying the current working directory, 
 # as that will have unnecessary files
-# COPY manage.py .
+COPY manage.py .
 # COPY periodic_task.py .
 
-# COPY fampay fampay
+COPY fampay fampay
 
-COPY . .
+# COPY . .
 
 # Generate static files
 # Note that we pass a dummy secret key
@@ -74,4 +74,21 @@ RUN GOOGLE_DEVELOPER_KEY=ignore DB_NAME=ignore DB_USER=ignore DB_PASSWORD=ignore
 # Switch to gunicorn user
 # This makes our container a lot more secure
 USER gunicorn
+
+# Declare some default values
+# These can be overidden when the container is run
+ENV PORT 8000
+ENV NUM_WORKERS 4
+ENV LOG_LEVEL ERROR
+ENV DEBUG False
+
+# Start gunicorn with the following configuration
+# - Number of workers and port can be overridden via environment variables
+# - All logs are to stdout / stderr
+# - Access log format is modified to include %(L)s - which is the request time in decimal seconds
+CMD gunicorn -b 0.0.0.0:$PORT --workers $NUM_WORKERS \
+    --name dockient \
+    --access-logfile '-' --error-logfile '-' --log-level $LOG_LEVEL \
+    --access-logformat '%(h)s %(l)s %(u)s %(t)s %(L)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"' \
+    fampay.wsgi
 
